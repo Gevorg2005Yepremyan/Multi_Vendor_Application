@@ -50,88 +50,98 @@ components:
         id:
           type: string
           description: User ID
-        firstName:
+        name:
           type: string
-        lastName:
+        surname:
           type: string
+        age:
+          type: integer
         email:
           type: string
           format: email
-        phone:
+        username:
+          type: string
+        password:
           type: string
         role:
           type: string
-          enum: [admin, vendor, customer, user]
-        avatarUrl:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
+          description: Role ID
+        isActive:
+          type: boolean
+        tokenVersion:
+          type: integer
+        profile:
+          type: object
+          properties:
+            phone:
+              type: string
+            avatarUrl:
+              type: string
+            bio:
+              type: string
 
     Product:
       type: object
       properties:
         id:
           type: string
-        name:
+        storeId:
+          type: string
+        sku:
+          type: string
+        title:
           type: string
         description:
           type: string
         price:
           type: number
-        vendorId:
+        currency:
           type: string
         images:
           type: array
           items:
             type: string
-        createdAt:
-          type: string
-          format: date-time
+        isActive:
+          type: boolean
 
     Order:
       type: object
       properties:
         id:
           type: string
-        customerId:
+        userId:
           type: string
-        vendorId:
+        storeId:
           type: string
-        status:
-          type: string
-          enum: [pending, confirmed, shipped, delivered, cancelled]
         items:
           type: array
           items:
             type: object
-        totalPrice:
+        totalAmount:
           type: number
-        createdAt:
+        currency:
           type: string
-          format: date-time
+        status:
+          type: string
+          enum: [pending, paid, shipped, cancelled]
 
     Review:
       type: object
       properties:
         id:
           type: string
-        orderId:
+        productId:
           type: string
-        customerId:
+        userId:
           type: string
         rating:
           type: integer
-          minimum: 1
+          minimum: 0
           maximum: 5
-        comment:
+        title:
           type: string
-        createdAt:
+        description:
           type: string
-          format: date-time
 
     Vendor:
       type: object
@@ -140,16 +150,12 @@ components:
           type: string
         userId:
           type: string
-        businessName:
+        companyName:
           type: string
         description:
           type: string
-        status:
-          type: string
-          enum: [pending, approved, rejected]
-        createdAt:
-          type: string
-          format: date-time
+        verified:
+          type: boolean
 
     Store:
       type: object
@@ -158,15 +164,12 @@ components:
           type: string
         vendorId:
           type: string
-        storeName:
+        name:
+          type: string
+        slug:
           type: string
         description:
           type: string
-        location:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
 
     Inventory:
       type: object
@@ -177,11 +180,8 @@ components:
           type: string
         quantity:
           type: integer
-        vendorId:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
+        reserved:
+          type: integer
 
     Error:
       type: object
