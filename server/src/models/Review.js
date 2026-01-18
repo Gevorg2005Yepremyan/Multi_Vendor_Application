@@ -6,7 +6,6 @@ const ReviewSchema = new Schema({
     rating: {type: Number, min: 0, max: 5},
     title: {type: String, required: true},
     description: {type: String}
-})
-ReviewSchema.index({productId: 1})
+});
 
 export default model("Review", ReviewSchema);

@@ -5,7 +5,6 @@ const VendorSchema = new Schema({
     companyName: {type: String, required: true},
     description: {type: String},
     verified: {type: Boolean, default: false}
-})
-VendorSchema.index({userId: 1});
+});
 
 export default model("Vendor", VendorSchema);

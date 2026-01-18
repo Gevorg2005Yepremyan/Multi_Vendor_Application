@@ -19,7 +19,9 @@
     "mongoose": "^8.20.1",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.11",
-    "uniqid": "^5.4.0"
+    "swagger-ui-express": "^5.0.1",
+    "uniqid": "^5.4.0",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "@ljharb/tsconfig": "^0.3.2"

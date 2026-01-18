@@ -1,5 +1,5 @@
 import express from "express";
-import { connectDB, disconnectDB } from "./server/src/config/db.js";
+import { connectDB } from "./server/src/config/db.js";
 import { env } from "./server/src/config/env.js";
 import userRouter from "./server/src/routes/users.js";
 import roleRouter from "./server/src/routes/roles.js";
@@ -11,12 +11,15 @@ import productRouter from "./server/src/routes/products.js";
 import inventoryRouter from "./server/src/routes/inventories.js";
 import orderRouter from "./server/src/routes/orders.js";
 import adminRouter from "./server/src/routes/admin.js";
+import swaggerUi from "swagger-ui-express";
+import { swaggerDocument } from "./server/src/config/swagger.js";
 
 const PORT = env.APP_PORT;
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded());
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/auth", authRouter);
 app.use("/user", userRouter);
 app.use("/account", accountRouter);

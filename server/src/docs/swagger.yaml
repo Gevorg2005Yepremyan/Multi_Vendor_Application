@@ -1,0 +1,1447 @@
+openapi: 3.0.0
+info:
+  title: Multi-Vendor Application API
+  description: A comprehensive API for a multi-vendor e-commerce platform with user management, product catalog, vendor management, orders, and admin controls.
+  version: 1.0.0
+  contact:
+    name: Support
+    email: support@multivendor.com
+
+servers:
+  - url: http://localhost:5000
+    description: Development server
+  - url: https://api.multivendor.com
+    description: Production server
+
+tags:
+  - name: Auth
+    description: Authentication endpoints
+  - name: Users
+    description: User profile and management
+  - name: Accounts
+    description: Account search and filtering
+  - name: Vendors
+    description: Vendor management
+  - name: Stores
+    description: Store management
+  - name: Products
+    description: Product management
+  - name: Inventory
+    description: Inventory management
+  - name: Orders
+    description: Order and review management
+  - name: Admin
+    description: Admin operations
+  - name: Roles
+    description: Role management
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: User ID
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [admin, vendor, customer, user]
+        avatarUrl:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        vendorId:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        customerId:
+          type: string
+        vendorId:
+          type: string
+        status:
+          type: string
+          enum: [pending, confirmed, shipped, delivered, cancelled]
+        items:
+          type: array
+          items:
+            type: object
+        totalPrice:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        customerId:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    Vendor:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        businessName:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        createdAt:
+          type: string
+          format: date-time
+
+    Store:
+      type: object
+      properties:
+        id:
+          type: string
+        vendorId:
+          type: string
+        storeName:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    Inventory:
+      type: object
+      properties:
+        id:
+          type: string
+        productId:
+          type: string
+        quantity:
+          type: integer
+        vendorId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        status:
+          type: integer
+
+security:
+  - BearerAuth: []
+
+paths:
+  /auth/signup:
+    post:
+      tags:
+        - Auth
+      summary: User signup
+      operationId: signup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                phone:
+                  type: string
+                role:
+                  type: string
+                  enum: [customer, vendor, admin]
+              required: [firstName, lastName, email, password, phone]
+      responses:
+        201:
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        400:
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: User login
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              required: [email, password]
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        401:
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/user:
+    get:
+      tags:
+        - Auth
+      summary: Get current authenticated user
+      operationId: getUser
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/forgot-password:
+    get:
+      tags:
+        - Auth
+      summary: Request password reset
+      operationId: forgotPassword
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Password reset email sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /auth/reset-password:
+    post:
+      tags:
+        - Auth
+      summary: Reset user password
+      operationId: resetPassword
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                newPassword:
+                  type: string
+                  minLength: 8
+              required: [token, newPassword]
+      responses:
+        200:
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /auth/logout:
+    get:
+      tags:
+        - Auth
+      summary: User logout
+      operationId: logout
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /user/profile:
+    post:
+      tags:
+        - Users
+      summary: Upload user profile with avatar
+      operationId: uploadProfile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatarUrl:
+                  type: string
+                  format: binary
+                  description: Avatar image file
+              required: [avatarUrl]
+      responses:
+        200:
+          description: Profile uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+
+    put:
+      tags:
+        - Users
+      summary: Update user profile
+      operationId: updateProfile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                phone:
+                  type: string
+                avatarUrl:
+                  type: string
+                  format: binary
+
+      responses:
+        200:
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /user/edit:
+    put:
+      tags:
+        - Users
+      summary: Edit user information
+      operationId: editUser
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+      responses:
+        200:
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /user/activity:
+    get:
+      tags:
+        - Users
+      summary: Switch user activity status
+      operationId: switchActivity
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Activity status toggled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  isActive:
+                    type: boolean
+
+  /account/search/{text}:
+    get:
+      tags:
+        - Accounts
+      summary: Search users by text
+      operationId: searchUsers
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: text
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Search query
+      responses:
+        200:
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /account/login-or-logout/{tokenVersion}:
+    get:
+      tags:
+        - Accounts
+      summary: Filter users by login/logout status
+      operationId: filterByLoginStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: tokenVersion
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Token version for filtering
+      responses:
+        200:
+          description: Filtered users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /account/filter/{age}:
+    get:
+      tags:
+        - Accounts
+      summary: Filter users by age
+      operationId: filterUsersByAge
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: age
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Age to filter by
+      responses:
+        200:
+          description: Filtered users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /account/profile/{phone}/{avatarUrl}:
+    get:
+      tags:
+        - Accounts
+      summary: Search user profile
+      operationId: searchProfile
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: avatarUrl
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: User profile found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /vendor/all:
+    get:
+      tags:
+        - Vendors
+      summary: Get all vendors (Admin only)
+      operationId: getAllVendors
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of vendors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vendor'
+        403:
+          description: Forbidden - Admin access required
+
+  /vendor/create:
+    post:
+      tags:
+        - Vendors
+      summary: Create a new vendor
+      operationId: createVendor
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                businessName:
+                  type: string
+                description:
+                  type: string
+                businessLicense:
+                  type: string
+              required: [businessName, description]
+      responses:
+        201:
+          description: Vendor created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+
+  /vendor/someone:
+    get:
+      tags:
+        - Vendors
+      summary: Get vendor by ID
+      operationId: getVendorById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: vendorId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Vendor details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+
+  /vendor/edit/{id}:
+    put:
+      tags:
+        - Vendors
+      summary: Update vendor (Vendor only)
+      operationId: updateVendor
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                businessName:
+                  type: string
+                description:
+                  type: string
+      responses:
+        200:
+          description: Vendor updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+
+  /vendor/delete:
+    delete:
+      tags:
+        - Vendors
+      summary: Delete vendor (Admin only)
+      operationId: deleteVendor
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: vendorId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Vendor deleted
+
+  /store/all:
+    get:
+      tags:
+        - Stores
+      summary: Get all stores (Admin only)
+      operationId: getAllStores
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of stores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Store'
+
+  /store/create:
+    post:
+      tags:
+        - Stores
+      summary: Create a new store (Vendor only)
+      operationId: createStore
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                storeName:
+                  type: string
+                description:
+                  type: string
+                location:
+                  type: string
+              required: [storeName, description, location]
+      responses:
+        201:
+          description: Store created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Store'
+
+  /store/get:
+    get:
+      tags:
+        - Stores
+      summary: Get vendor's store
+      operationId: getStore
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Store details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Store'
+
+  /store/update:
+    put:
+      tags:
+        - Stores
+      summary: Update store
+      operationId: updateStore
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                storeName:
+                  type: string
+                description:
+                  type: string
+                location:
+                  type: string
+      responses:
+        200:
+          description: Store updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Store'
+
+  /store/delete:
+    delete:
+      tags:
+        - Stores
+      summary: Delete store
+      operationId: deleteStore
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Store deleted
+
+  /product/all:
+    get:
+      tags:
+        - Products
+      summary: Get all products (Admin only)
+      operationId: getAllProducts
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+
+  /product/create:
+    post:
+      tags:
+        - Products
+      summary: Create a new product (Vendor/Admin)
+      operationId: createProduct
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                price:
+                  type: number
+                category:
+                  type: string
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  maxItems: 8
+              required: [name, price, category]
+      responses:
+        201:
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+
+  /product/get/{id}:
+    get:
+      tags:
+        - Products
+      summary: Get product by ID
+      operationId: getProduct
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+
+  /product/update/{id}:
+    put:
+      tags:
+        - Products
+      summary: Update product
+      operationId: updateProduct
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                price:
+                  type: number
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        200:
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+
+  /product/delete/{id}:
+    delete:
+      tags:
+        - Products
+      summary: Delete product
+      operationId: deleteProduct
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Product deleted
+
+  /inventory/all:
+    get:
+      tags:
+        - Inventory
+      summary: Get all inventory (Admin only)
+      operationId: getAllInventory
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of inventory items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Inventory'
+
+  /inventory/create:
+    post:
+      tags:
+        - Inventory
+      summary: Create inventory item (Vendor only)
+      operationId: createInventory
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                productId:
+                  type: string
+                quantity:
+                  type: integer
+                  minimum: 0
+              required: [productId, quantity]
+      responses:
+        201:
+          description: Inventory created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+
+  /inventory/get/{id}:
+    get:
+      tags:
+        - Inventory
+      summary: Get inventory by ID
+      operationId: getInventory
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Inventory details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+
+  /inventory/update/{id}:
+    put:
+      tags:
+        - Inventory
+      summary: Update inventory
+      operationId: updateInventory
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+      responses:
+        200:
+          description: Inventory updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+
+  /inventory/delete/{id}:
+    delete:
+      tags:
+        - Inventory
+      summary: Delete inventory
+      operationId: deleteInventory
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Inventory deleted
+
+  /order/all:
+    get:
+      tags:
+        - Orders
+      summary: Get all orders (Admin only)
+      operationId: getAllOrders
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+
+  /order/review/all:
+    get:
+      tags:
+        - Orders
+      summary: Get all reviews (Admin only)
+      operationId: getAllReviews
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+
+  /order/create:
+    post:
+      tags:
+        - Orders
+      summary: Create a new order (Customer only)
+      operationId: createOrder
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                vendorId:
+                  type: string
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      productId:
+                        type: string
+                      quantity:
+                        type: integer
+                deliveryAddress:
+                  type: string
+              required: [vendorId, items, deliveryAddress]
+      responses:
+        201:
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+
+  /order/my:
+    get:
+      tags:
+        - Orders
+      summary: Get customer's orders
+      operationId: getMyOrders
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of customer's orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+
+  /order/get/{id}:
+    get:
+      tags:
+        - Orders
+      summary: Get order by ID
+      operationId: getOrderById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+
+  /order/store:
+    get:
+      tags:
+        - Orders
+      summary: Get vendor's store orders
+      operationId: getStoreOrders
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of vendor's orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+
+  /order/update/{id}:
+    put:
+      tags:
+        - Orders
+      summary: Update order status
+      operationId: updateOrderStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, confirmed, shipped, delivered, cancelled]
+              required: [status]
+      responses:
+        200:
+          description: Order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+
+  /order/delete/{id}:
+    delete:
+      tags:
+        - Orders
+      summary: Delete order
+      operationId: deleteOrder
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Order deleted
+
+  /order/review/create:
+    post:
+      tags:
+        - Orders
+      summary: Create a review for an order (Customer only)
+      operationId: createReview
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orderId:
+                  type: string
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                comment:
+                  type: string
+              required: [orderId, rating]
+      responses:
+        201:
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+
+  /order/review/my:
+    get:
+      tags:
+        - Orders
+      summary: Get customer's reviews
+      operationId: getMyReviews
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of customer's reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+
+  /order/review/get/{id}:
+    get:
+      tags:
+        - Orders
+      summary: Get review by ID
+      operationId: getReviewById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Review details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+
+  /order/review/delete/{id}:
+    delete:
+      tags:
+        - Orders
+      summary: Delete review (Vendor/Admin only)
+      operationId: deleteReview
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Review deleted
+
+  /admin/all:
+    get:
+      tags:
+        - Admin
+      summary: Get all users (Admin only)
+      operationId: getAdminUsers
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /admin/get/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Get user by ID (Admin only)
+      operationId: getAdminUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /admin/update/{id}:
+    put:
+      tags:
+        - Admin
+      summary: Update user (Admin only)
+      operationId: adminUpdateUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                role:
+                  type: string
+                  enum: [admin, vendor, customer, user]
+      responses:
+        200:
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /admin/delete/{id}:
+    delete:
+      tags:
+        - Admin
+      summary: Delete user (Admin only)
+      operationId: adminDeleteUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: User deleted

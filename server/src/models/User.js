@@ -18,6 +18,6 @@ const UserSchema = new Schema({
         bio: String
     }
 });
-UserSchema.index({ email: 1 });
+
 
 export default model("User", UserSchema);
