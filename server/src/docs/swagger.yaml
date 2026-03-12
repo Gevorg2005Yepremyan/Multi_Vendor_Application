@@ -1,39 +1,11 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
-  title: Multi-Vendor Application API
-  description: A comprehensive API for a multi-vendor e-commerce platform with user management, product catalog, vendor management, orders, and admin controls.
+  title: Marketplace API
+  description: API documentation for authentication, accounts, products, orders, inventories and admin operations
   version: 1.0.0
-  contact:
-    name: Support
-    email: support@multivendor.com
 
 servers:
-  - url: http://localhost:5000
-    description: Development server
-  - url: https://api.multivendor.com
-    description: Production server
-
-tags:
-  - name: Auth
-    description: Authentication endpoints
-  - name: Users
-    description: User profile and management
-  - name: Accounts
-    description: Account search and filtering
-  - name: Vendors
-    description: Vendor management
-  - name: Stores
-    description: Store management
-  - name: Products
-    description: Product management
-  - name: Inventory
-    description: Inventory management
-  - name: Orders
-    description: Order and review management
-  - name: Admin
-    description: Admin operations
-  - name: Roles
-    description: Role management
+  - url: http://localhost:5000/api-docs
 
 components:
   securitySchemes:
@@ -41,166 +13,365 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT token for authentication
 
   schemas:
-    User:
-      type: object
-      properties:
-        id:
-          type: string
-          description: User ID
-        name:
-          type: string
-        surname:
-          type: string
-        age:
-          type: integer
-        email:
-          type: string
-          format: email
-        username:
-          type: string
-        password:
-          type: string
-        role:
-          type: string
-          description: Role ID
-        isActive:
-          type: boolean
-        tokenVersion:
-          type: integer
-        profile:
-          type: object
-          properties:
-            phone:
-              type: string
-            avatarUrl:
-              type: string
-            bio:
-              type: string
 
-    Product:
-      type: object
-      properties:
-        id:
-          type: string
-        storeId:
-          type: string
-        sku:
-          type: string
-        title:
-          type: string
-        description:
-          type: string
-        price:
-          type: number
-        currency:
-          type: string
-        images:
-          type: array
-          items:
+  User:
+    type: object
+    properties:
+      _id:
+        type: string
+        example: "65a12f7b8e23d4a1a12e98c1"
+
+      name:
+        type: string
+
+      surname:
+        type: string
+
+      age:
+        type: integer
+        example: 25
+
+      email:
+        type: string
+        format: email
+
+      username:
+        type: string
+
+      password:
+        type: string
+        format: password
+
+      role:
+        type: string
+        description: Role ObjectId reference
+
+      isActive:
+        type: boolean
+        default: false
+
+      tokenVersion:
+        type: integer
+        default: 0
+
+      resetPasswordToken:
+        type: string
+        nullable: true
+
+      resetPasswordExpires:
+        type: string
+        format: date-time
+        nullable: true
+
+      profile:
+        type: object
+        properties:
+          phone:
             type: string
-        isActive:
-          type: boolean
+          avatarUrl:
+            type: string
+          bio:
+            type: string
 
-    Order:
-      type: object
-      properties:
-        id:
-          type: string
-        userId:
-          type: string
-        storeId:
-          type: string
+    required:
+      - name
+      - surname
+      - age
+      - email
+      - username
+      - password
+
+  Vendor:
+    type: object
+    properties:
+      _id:
+        type: string
+
+      userId:
+        type: string
+        description: Reference to User
+
+      companyName:
+        type: string
+
+      description:
+        type: string
+
+      verified:
+        type: boolean
+        default: false
+
+    required:
+      - userId
+      - companyName
+
+  Role:
+    type: object
+    properties:
+      _id:
+        type: string
+
+      name:
+        type: string
+        enum:
+          - vendor
+          - user
+          - customer
+          - admin
+        default: user
+
+    required:
+      - name
+
+  Store:
+    type: object
+    properties:
+      _id:
+        type: string
+
+      vendorId:
+        type: string
+        description: Vendor ObjectId
+
+      name:
+        type: string
+
+      slug:
+        type: string
+
+      description:
+        type: string
+
+    required:
+      - vendorId
+      - name
+      - slug
+
+  Product:
+    type: object
+    properties:
+      _id:
+        type: string
+
+      storeId:
+        type: string
+
+      sku:
+        type: string
+
+      title:
+        type: string
+
+      description:
+        type: string
+
+      price:
+        type: number
+        example: 25.5
+
+      currency:
+        type: string
+        enum:
+          - AMD
+          - RUB
+          - USD
+          - EUR
+          - JPY
+          - CAD
+          - CNH
+          - AUD
+          - NZD
+          - ARS
+        default: AMD
+
+      images:
+        type: array
         items:
-          type: array
-          items:
-            type: object
-        totalAmount:
-          type: number
-        currency:
-          type: string
-        status:
-          type: string
-          enum: [pending, paid, shipped, cancelled]
-
-    Review:
-      type: object
-      properties:
-        id:
-          type: string
-        productId:
-          type: string
-        userId:
-          type: string
-        rating:
-          type: integer
-          minimum: 0
-          maximum: 5
-        title:
-          type: string
-        description:
           type: string
 
-    Vendor:
-      type: object
-      properties:
-        id:
-          type: string
-        userId:
-          type: string
-        companyName:
-          type: string
-        description:
-          type: string
-        verified:
-          type: boolean
+      isActive:
+        type: boolean
+        default: true
 
-    Store:
-      type: object
-      properties:
-        id:
-          type: string
-        vendorId:
-          type: string
-        name:
-          type: string
-        slug:
-          type: string
-        description:
-          type: string
+    required:
+      - storeId
+      - sku
+      - title
+      - price
 
-    Inventory:
-      type: object
-      properties:
-        id:
-          type: string
-        productId:
-          type: string
-        quantity:
-          type: integer
-        reserved:
-          type: integer
+  Review:
+    type: object
+    properties:
+      _id:
+        type: string
 
-    Error:
-      type: object
-      properties:
-        message:
-          type: string
-        status:
-          type: integer
+      productId:
+        type: string
 
-security:
-  - BearerAuth: []
+      userId:
+        type: string
+
+      rating:
+        type: number
+        minimum: 0
+        maximum: 5
+
+      title:
+        type: string
+
+      description:
+        type: string
+
+    required:
+      - productId
+      - userId
+      - title
+
+  Payment:
+    type: object
+    properties:
+      _id:
+        type: string
+
+      orderId:
+        type: string
+
+      amount:
+        type: number
+
+      method:
+        type: string
+        enum:
+          - stripe
+          - paypal
+          - balance
+        default: balance
+
+      providerData:
+        type: object
+        additionalProperties: true
+
+      paymentStatus:
+        type: string
+        enum:
+          - pending
+          - succeeded
+          - failure
+        default: pending
+
+    required:
+      - orderId
+      - amount
+
+  OrderItem:
+    type: object
+    properties:
+      productId:
+        type: string
+
+      title:
+        type: string
+
+      unitPrice:
+        type: number
+        default: 0
+
+      quantity:
+        type: number
+        default: 0
+
+    required:
+      - productId
+      - title
+
+  Order:
+    type: object
+    properties:
+      _id:
+        type: string
+
+      userId:
+        type: string
+
+      storeId:
+        type: string
+
+      items:
+        type: array
+        items:
+          $ref: "#/components/schemas/OrderItem"
+
+      totalAmount:
+        type: number
+
+      currency:
+        type: string
+        enum:
+          - AMD
+          - RUB
+          - USD
+          - EUR
+          - JPY
+          - CAD
+          - CNH
+          - AUD
+          - NZD
+          - ARS
+        default: AMD
+
+      status:
+        type: string
+        enum:
+          - pending
+          - paid
+          - shipped
+          - cancelled
+        default: pending
+
+    required:
+      - userId
+      - storeId
+      - items
+      - totalAmount
+
+  Inventory:
+    type: object
+    properties:
+      _id:
+        type: string
+
+      productId:
+        type: string
+
+      quantity:
+        type: number
+        minimum: 0
+
+      reserved:
+        type: number
+        minimum: 0
+
+    required:
+      - productId
+
+tags:
+  - name: Auth
+  - name: Accounts
+  - name: Admin
+  - name: Products
+  - name: Inventories
+  - name: Orders
+  - name: Roles
 
 paths:
+
+# AUTH
   /auth/signup:
     post:
-      tags:
-        - Auth
-      summary: User signup
-      operationId: signup
+      tags: [Auth]
+      summary: Register user
       requestBody:
         required: true
         content:
@@ -208,47 +379,20 @@ paths:
             schema:
               type: object
               properties:
-                firstName:
-                  type: string
-                lastName:
-                  type: string
                 email:
                   type: string
-                  format: email
                 password:
                   type: string
-                  minLength: 8
                 phone:
                   type: string
-                role:
-                  type: string
-                  enum: [customer, vendor, admin]
-              required: [firstName, lastName, email, password, phone]
       responses:
-        201:
-          description: User created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  user:
-                    $ref: '#/components/schemas/User'
-        400:
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+        200:
+          description: User created
 
   /auth/login:
     post:
-      tags:
-        - Auth
-      summary: User login
-      operationId: login
+      tags: [Auth]
+      summary: Login user
       requestBody:
         required: true
         content:
@@ -258,247 +402,65 @@ paths:
               properties:
                 email:
                   type: string
-                  format: email
                 password:
                   type: string
-              required: [email, password]
       responses:
         200:
           description: Login successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  token:
-                    type: string
-                  user:
-                    $ref: '#/components/schemas/User'
-        401:
-          description: Invalid credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 
   /auth/user:
     get:
-      tags:
-        - Auth
-      summary: Get current authenticated user
-      operationId: getUser
+      tags: [Auth]
+      summary: Get current user
       security:
         - BearerAuth: []
       responses:
         200:
-          description: User details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        401:
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /auth/forgot-password:
-    get:
-      tags:
-        - Auth
-      summary: Request password reset
-      operationId: forgotPassword
-      security:
-        - BearerAuth: []
-      responses:
-        200:
-          description: Password reset email sent
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /auth/reset-password:
-    post:
-      tags:
-        - Auth
-      summary: Reset user password
-      operationId: resetPassword
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                token:
-                  type: string
-                newPassword:
-                  type: string
-                  minLength: 8
-              required: [token, newPassword]
-      responses:
-        200:
-          description: Password reset successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+          description: Current user data
 
   /auth/logout:
     get:
-      tags:
-        - Auth
-      summary: User logout
-      operationId: logout
+      tags: [Auth]
+      summary: Logout user
       security:
         - BearerAuth: []
       responses:
         200:
           description: Logout successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
 
-  /user/profile:
+  /auth/forgot-password:
+    get:
+      tags: [Auth]
+      summary: Forgot password
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Reset instructions sent
+
+  /auth/reset-password:
     post:
-      tags:
-        - Users
-      summary: Upload user profile with avatar
-      operationId: uploadProfile
+      tags: [Auth]
+      summary: Reset password
       security:
         - BearerAuth: []
       requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                avatarUrl:
-                  type: string
-                  format: binary
-                  description: Avatar image file
-              required: [avatarUrl]
-      responses:
-        200:
-          description: Profile uploaded successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  user:
-                    $ref: '#/components/schemas/User'
-
-    put:
-      tags:
-        - Users
-      summary: Update user profile
-      operationId: updateProfile
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                firstName:
-                  type: string
-                lastName:
-                  type: string
-                phone:
-                  type: string
-                avatarUrl:
-                  type: string
-                  format: binary
-
-      responses:
-        200:
-          description: Profile updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-
-  /user/edit:
-    put:
-      tags:
-        - Users
-      summary: Edit user information
-      operationId: editUser
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
         content:
           application/json:
             schema:
               type: object
               properties:
-                firstName:
-                  type: string
-                lastName:
-                  type: string
-                email:
-                  type: string
-                  format: email
-                phone:
+                password:
                   type: string
       responses:
         200:
-          description: User updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
+          description: Password updated
 
-  /user/activity:
+# ACCOUNTS
+  /accounts/search/{text}:
     get:
-      tags:
-        - Users
-      summary: Switch user activity status
-      operationId: switchActivity
-      security:
-        - BearerAuth: []
-      responses:
-        200:
-          description: Activity status toggled
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  isActive:
-                    type: boolean
-
-  /account/search/{text}:
-    get:
-      tags:
-        - Accounts
-      summary: Search users by text
-      operationId: searchUsers
+      tags: [Accounts]
+      summary: Search users
       security:
         - BearerAuth: []
       parameters:
@@ -507,23 +469,14 @@ paths:
           required: true
           schema:
             type: string
-          description: Search query
       responses:
         200:
-          description: Search results
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
+          description: Users found
 
-  /account/login-or-logout/{tokenVersion}:
+  /accounts/login-or-logout/{tokenVersion}:
     get:
-      tags:
-        - Accounts
-      summary: Filter users by login/logout status
-      operationId: filterByLoginStatus
+      tags: [Accounts]
+      summary: Get login or logout users
       security:
         - BearerAuth: []
       parameters:
@@ -532,23 +485,14 @@ paths:
           required: true
           schema:
             type: integer
-          description: Token version for filtering
       responses:
         200:
-          description: Filtered users
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
+          description: List of users
 
-  /account/filter/{age}:
+  /accounts/filter/{age}:
     get:
-      tags:
-        - Accounts
+      tags: [Accounts]
       summary: Filter users by age
-      operationId: filterUsersByAge
       security:
         - BearerAuth: []
       parameters:
@@ -557,23 +501,14 @@ paths:
           required: true
           schema:
             type: integer
-          description: Age to filter by
       responses:
         200:
           description: Filtered users
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
 
-  /account/profile/{phone}/{avatarUrl}:
+  /accounts/profile/{phone}/{avatarUrl}:
     get:
-      tags:
-        - Accounts
-      summary: Search user profile
-      operationId: searchProfile
+      tags: [Accounts]
+      summary: Search profile
       security:
         - BearerAuth: []
       parameters:
@@ -589,90 +524,23 @@ paths:
             type: string
       responses:
         200:
-          description: User profile found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
+          description: Profile found
 
-  /vendor/all:
+# ADMIN
+  /admin/all:
     get:
-      tags:
-        - Vendors
-      summary: Get all vendors (Admin only)
-      operationId: getAllVendors
+      tags: [Admin]
+      summary: Get all users
       security:
         - BearerAuth: []
       responses:
         200:
-          description: List of vendors
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Vendor'
-        403:
-          description: Forbidden - Admin access required
+          description: Users list
 
-  /vendor/create:
-    post:
-      tags:
-        - Vendors
-      summary: Create a new vendor
-      operationId: createVendor
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                businessName:
-                  type: string
-                description:
-                  type: string
-                businessLicense:
-                  type: string
-              required: [businessName, description]
-      responses:
-        201:
-          description: Vendor created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Vendor'
-
-  /vendor/someone:
+  /admin/get/{id}:
     get:
-      tags:
-        - Vendors
-      summary: Get vendor by ID
-      operationId: getVendorById
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: vendorId
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: Vendor details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Vendor'
-
-  /vendor/edit/{id}:
-    put:
-      tags:
-        - Vendors
-      summary: Update vendor (Vendor only)
-      operationId: updateVendor
+      tags: [Admin]
+      summary: Get user by ID
       security:
         - BearerAuth: []
       parameters:
@@ -681,176 +549,60 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                businessName:
-                  type: string
-                description:
-                  type: string
       responses:
         200:
-          description: Vendor updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Vendor'
+          description: User data
 
-  /vendor/delete:
-    delete:
-      tags:
-        - Vendors
-      summary: Delete vendor (Admin only)
-      operationId: deleteVendor
+  /admin/update/{id}:
+    put:
+      tags: [Admin]
+      summary: Update user
       security:
         - BearerAuth: []
       parameters:
-        - name: vendorId
-          in: query
+        - name: id
+          in: path
           required: true
           schema:
             type: string
       responses:
         200:
-          description: Vendor deleted
+          description: User updated
 
-  /store/all:
-    get:
-      tags:
-        - Stores
-      summary: Get all stores (Admin only)
-      operationId: getAllStores
-      security:
-        - BearerAuth: []
-      responses:
-        200:
-          description: List of stores
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Store'
-
-  /store/create:
-    post:
-      tags:
-        - Stores
-      summary: Create a new store (Vendor only)
-      operationId: createStore
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                storeName:
-                  type: string
-                description:
-                  type: string
-                location:
-                  type: string
-              required: [storeName, description, location]
-      responses:
-        201:
-          description: Store created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Store'
-
-  /store/get:
-    get:
-      tags:
-        - Stores
-      summary: Get vendor's store
-      operationId: getStore
-      security:
-        - BearerAuth: []
-      responses:
-        200:
-          description: Store details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Store'
-
-  /store/update:
-    put:
-      tags:
-        - Stores
-      summary: Update store
-      operationId: updateStore
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                storeName:
-                  type: string
-                description:
-                  type: string
-                location:
-                  type: string
-      responses:
-        200:
-          description: Store updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Store'
-
-  /store/delete:
+  /admin/delete/{id}:
     delete:
-      tags:
-        - Stores
-      summary: Delete store
-      operationId: deleteStore
+      tags: [Admin]
+      summary: Delete user
       security:
         - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         200:
-          description: Store deleted
+          description: User deleted
 
-  /product/all:
+# PRODUCTS
+  /products/all:
     get:
-      tags:
-        - Products
-      summary: Get all products (Admin only)
-      operationId: getAllProducts
+      tags: [Products]
+      summary: Get products
       security:
         - BearerAuth: []
       responses:
         200:
-          description: List of products
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Product'
+          description: Products list
 
-  /product/create:
+  /products/create:
     post:
-      tags:
-        - Products
-      summary: Create a new product (Vendor/Admin)
-      operationId: createProduct
+      tags: [Products]
+      summary: Create product
       security:
         - BearerAuth: []
       requestBody:
-        required: true
         content:
           multipart/form-data:
             schema:
@@ -858,55 +610,37 @@ paths:
               properties:
                 name:
                   type: string
-                description:
-                  type: string
                 price:
                   type: number
-                category:
-                  type: string
                 images:
                   type: array
                   items:
                     type: string
                     format: binary
-                  maxItems: 8
-              required: [name, price, category]
       responses:
-        201:
+        200:
           description: Product created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Product'
 
-  /product/get/{id}:
+  /products/get/{id}:
     get:
-      tags:
-        - Products
-      summary: Get product by ID
-      operationId: getProduct
+      tags: [Products]
+      summary: Get product by id
       security:
         - BearerAuth: []
       parameters:
         - name: id
           in: path
-          required: true
           schema:
             type: string
+          required: true
       responses:
         200:
-          description: Product details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Product'
+          description: Product found
 
-  /product/update/{id}:
+  /products/update/{id}:
     put:
-      tags:
-        - Products
+      tags: [Products]
       summary: Update product
-      operationId: updateProduct
       security:
         - BearerAuth: []
       parameters:
@@ -915,38 +649,14 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                description:
-                  type: string
-                price:
-                  type: number
-                images:
-                  type: array
-                  items:
-                    type: string
-                    format: binary
       responses:
         200:
           description: Product updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Product'
 
-  /product/delete/{id}:
+  /products/delete/{id}:
     delete:
-      tags:
-        - Products
+      tags: [Products]
       summary: Delete product
-      operationId: deleteProduct
       security:
         - BearerAuth: []
       parameters:
@@ -959,59 +669,31 @@ paths:
         200:
           description: Product deleted
 
-  /inventory/all:
+# INVENTORIES
+  /inventories/all:
     get:
-      tags:
-        - Inventory
-      summary: Get all inventory (Admin only)
-      operationId: getAllInventory
+      tags: [Inventories]
+      summary: Get inventories
       security:
         - BearerAuth: []
       responses:
         200:
-          description: List of inventory items
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Inventory'
+          description: Inventories list
 
-  /inventory/create:
+  /inventories/create:
     post:
-      tags:
-        - Inventory
-      summary: Create inventory item (Vendor only)
-      operationId: createInventory
+      tags: [Inventories]
+      summary: Create inventory
       security:
         - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                productId:
-                  type: string
-                quantity:
-                  type: integer
-                  minimum: 0
-              required: [productId, quantity]
       responses:
-        201:
+        200:
           description: Inventory created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Inventory'
 
-  /inventory/get/{id}:
+  /inventories/get/{id}:
     get:
-      tags:
-        - Inventory
-      summary: Get inventory by ID
-      operationId: getInventory
+      tags: [Inventories]
+      summary: Get inventory
       security:
         - BearerAuth: []
       parameters:
@@ -1022,158 +704,43 @@ paths:
             type: string
       responses:
         200:
-          description: Inventory details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Inventory'
+          description: Inventory found
 
-  /inventory/update/{id}:
-    put:
-      tags:
-        - Inventory
-      summary: Update inventory
-      operationId: updateInventory
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                quantity:
-                  type: integer
-      responses:
-        200:
-          description: Inventory updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Inventory'
-
-  /inventory/delete/{id}:
-    delete:
-      tags:
-        - Inventory
-      summary: Delete inventory
-      operationId: deleteInventory
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: Inventory deleted
-
-  /order/all:
+# ORDERS
+  /orders/all:
     get:
-      tags:
-        - Orders
-      summary: Get all orders (Admin only)
-      operationId: getAllOrders
+      tags: [Orders]
+      summary: Get all orders
       security:
         - BearerAuth: []
       responses:
         200:
-          description: List of orders
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Order'
+          description: Orders list
 
-  /order/review/all:
-    get:
-      tags:
-        - Orders
-      summary: Get all reviews (Admin only)
-      operationId: getAllReviews
-      security:
-        - BearerAuth: []
-      responses:
-        200:
-          description: List of reviews
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Review'
-
-  /order/create:
+  /orders/create:
     post:
-      tags:
-        - Orders
-      summary: Create a new order (Customer only)
-      operationId: createOrder
+      tags: [Orders]
+      summary: Create order
       security:
         - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                vendorId:
-                  type: string
-                items:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      productId:
-                        type: string
-                      quantity:
-                        type: integer
-                deliveryAddress:
-                  type: string
-              required: [vendorId, items, deliveryAddress]
       responses:
-        201:
+        200:
           description: Order created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Order'
 
-  /order/my:
+  /orders/my:
     get:
-      tags:
-        - Orders
-      summary: Get customer's orders
-      operationId: getMyOrders
+      tags: [Orders]
+      summary: Get my orders
       security:
         - BearerAuth: []
       responses:
         200:
-          description: List of customer's orders
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Order'
+          description: My orders
 
-  /order/get/{id}:
+  /orders/get/{id}:
     get:
-      tags:
-        - Orders
-      summary: Get order by ID
-      operationId: getOrderById
+      tags: [Orders]
+      summary: Get order by id
       security:
         - BearerAuth: []
       parameters:
@@ -1184,139 +751,26 @@ paths:
             type: string
       responses:
         200:
-          description: Order details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Order'
+          description: Order found
 
-  /order/store:
-    get:
-      tags:
-        - Orders
-      summary: Get vendor's store orders
-      operationId: getStoreOrders
-      security:
-        - BearerAuth: []
-      responses:
-        200:
-          description: List of vendor's orders
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Order'
-
-  /order/update/{id}:
-    put:
-      tags:
-        - Orders
-      summary: Update order status
-      operationId: updateOrderStatus
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  enum: [pending, confirmed, shipped, delivered, cancelled]
-              required: [status]
-      responses:
-        200:
-          description: Order updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Order'
-
-  /order/delete/{id}:
-    delete:
-      tags:
-        - Orders
-      summary: Delete order
-      operationId: deleteOrder
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: Order deleted
-
-  /order/review/create:
+# ROLES
+  /roles/add:
     post:
-      tags:
-        - Orders
-      summary: Create a review for an order (Customer only)
-      operationId: createReview
-      security:
-        - BearerAuth: []
+      tags: [Roles]
+      summary: Add role
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                orderId:
-                  type: string
-                rating:
-                  type: integer
-                  minimum: 1
-                  maximum: 5
-                comment:
-                  type: string
-              required: [orderId, rating]
-      responses:
-        201:
-          description: Review created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Review'
-
-  /order/review/my:
-    get:
-      tags:
-        - Orders
-      summary: Get customer's reviews
-      operationId: getMyReviews
-      security:
-        - BearerAuth: []
+              $ref: "#/components/schemas/Role"
       responses:
         200:
-          description: List of customer's reviews
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Review'
+          description: Role added
 
-  /order/review/get/{id}:
+  /roles/get/{id}:
     get:
-      tags:
-        - Orders
-      summary: Get review by ID
-      operationId: getReviewById
-      security:
-        - BearerAuth: []
+      tags: [Roles]
+      summary: Get role
       parameters:
         - name: id
           in: path
@@ -1325,20 +779,20 @@ paths:
             type: string
       responses:
         200:
-          description: Review details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Review'
+          description: Role found
 
-  /order/review/delete/{id}:
+  /roles/getAll:
+    get:
+      tags: [Roles]
+      summary: Get all roles
+      responses:
+        200:
+          description: Roles list
+
+  /roles/delete/{id}:
     delete:
-      tags:
-        - Orders
-      summary: Delete review (Vendor/Admin only)
-      operationId: deleteReview
-      security:
-        - BearerAuth: []
+      tags: [Roles]
+      summary: Delete role
       parameters:
         - name: id
           in: path
@@ -1347,62 +801,25 @@ paths:
             type: string
       responses:
         200:
-          description: Review deleted
+          description: Role deleted
 
-  /admin/all:
+#STORES
+  /stores/all:
     get:
-      tags:
-        - Admin
-      summary: Get all users (Admin only)
-      operationId: getAdminUsers
+      tags: [Stores]
+      summary: Get all stores (Admin only)
       security:
         - BearerAuth: []
       responses:
         200:
-          description: List of users
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
+          description: List of stores
 
-  /admin/get/{id}:
-    get:
-      tags:
-        - Admin
-      summary: Get user by ID (Admin only)
-      operationId: getAdminUser
+  /stores/create:
+    post:
+      tags: [Stores]
+      summary: Create new store
       security:
         - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: User details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-
-  /admin/update/{id}:
-    put:
-      tags:
-        - Admin
-      summary: Update user (Admin only)
-      operationId: adminUpdateUser
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
       requestBody:
         required: true
         content:
@@ -1410,38 +827,187 @@ paths:
             schema:
               type: object
               properties:
-                firstName:
+                name:
                   type: string
-                lastName:
+                description:
                   type: string
+                address:
+                  type: string
+      responses:
+        200:
+          description: Store created
+
+  /stores/get:
+    get:
+      tags: [Stores]
+      summary: Get vendor store
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Store details
+
+  /stores/update:
+    put:
+      tags: [Stores]
+      summary: Update vendor store
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                address:
+                  type: string
+      responses:
+        200:
+          description: Store updated
+
+  /stores/delete:
+    delete:
+      tags: [Stores]
+      summary: Delete vendor store
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Store deleted
+
+#USERS
+  /users/profile:
+    post:
+      tags: [Users]
+      summary: Upload user profile avatar
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatarUrl:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Profile uploaded
+
+    put:
+      tags: [Users]
+      summary: Update user profile avatar
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatarUrl:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Profile updated
+
+  /users/edit:
+    put:
+      tags: [Users]
+      summary: Edit user information
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
                 email:
                   type: string
-                  format: email
-                role:
+                phone:
                   type: string
-                  enum: [admin, vendor, customer, user]
+                name:
+                  type: string
       responses:
         200:
           description: User updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
 
-  /admin/delete/{id}:
-    delete:
-      tags:
-        - Admin
-      summary: Delete user (Admin only)
-      operationId: adminDeleteUser
+  /users/activity:
+    get:
+      tags: [Users]
+      summary: Switch user activity
       security:
         - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
       responses:
         200:
-          description: User deleted
+          description: Activity switched
+
+#VENDORS
+  /vendors/profile:
+    post:
+      tags: [Vendors]
+      summary: Upload vendor profile avatar
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatarUrl:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Vendor profile uploaded
+
+    put:
+      tags: [Vendors]
+      summary: Update vendor profile avatar
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatarUrl:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Vendor profile updated
+
+  /vendors/edit:
+    put:
+      tags: [Vendors]
+      summary: Edit vendor information
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Vendor updated
+
+  /vendors/activity:
+    get:
+      tags: [Vendors]
+      summary: Switch vendor activity
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Activity switched
