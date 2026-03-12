@@ -24,6 +24,7 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "@ljharb/tsconfig": "^0.3.2"
+    "@ljharb/tsconfig": "^0.3.2",
+    "@types/yamljs": "^0.2.34"
   }
 }
